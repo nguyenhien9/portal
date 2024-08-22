@@ -4,7 +4,7 @@ const get = async (req, res, next) => {
   try {
     const {
       page = 1,
-      limit = 10,
+      limit = 5,
       sortBy = "createdAt",
       order = "ASC",
     } = req.query;
@@ -17,9 +17,10 @@ const get = async (req, res, next) => {
     return res.status(200).json({
       status: "success",
       message: "Services fetched successfully",
-      data: result.data,
+      results: result.services,
       totalPages: result.totalPages,
       totalServices: result.totalServices,
+      limit: result.limit,
       page: result.page,
     });
   } catch (error) {
@@ -37,6 +38,7 @@ const create = async (req, res, next) => {
     if (result.status === "failed") {
       return res.status(400).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }

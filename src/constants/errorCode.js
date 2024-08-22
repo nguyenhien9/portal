@@ -17,6 +17,10 @@ const ERROR_CODE = {
     code: 400,
     msg: "Service code must start with S00",
   },
+  SERVICE_EXISTING: {
+    code: 401,
+    msg: "Service already existing",
+  },
   CUSTOMER_CODE_INVALID: {
     code: 500,
     msg: "Customer code must start with CUS00",

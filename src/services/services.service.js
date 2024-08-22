@@ -1,12 +1,16 @@
 const Services = require("../models/services.model");
-
+const ERROR_CODE = require("../constants/errorCode");
 const createService = async (dto) => {
   try {
     const existingService = await Services.findOne({
       where: { service_code: dto.service_code },
     });
     if (existingService) {
-      return { status: "failed", message: "Service already exists" };
+      return {
+        status: "failed",
+        code: ERROR_CODE.SERVICE_EXISTING.code,
+        message: ERROR_CODE.SERVICE_EXISTING.msg,
+      };
     }
     const newService = await Services.create({ ...dto });
     return {
@@ -32,9 +36,10 @@ const getAllServices = async ({ page, limit, sortBy, order }) => {
     return {
       status: "success",
       message: "Services fetched successfully",
-      data: rows,
+      services: rows,
       totalPages: totalPages,
       totalServices: count,
+      limit: limit,
       page: page,
     };
   } catch (error) {
