@@ -1,6 +1,6 @@
 const ERROR_CODE = require("../constants/errorCode");
 const ServiceBooking = require("../models/serviceBooking.model");
-
+const generateRandomCode = require("../utils/helpers");
 const getAllBookings = async ({ page, limit, sortBy, order }) => {
   try {
     const offset = (page - 1) * limit;
@@ -32,21 +32,22 @@ const getAllBookings = async ({ page, limit, sortBy, order }) => {
 
 const createNewBooking = async (dto) => {
   try {
-    const existingBooking = await ServiceBooking.findOne({
-      where: { booking_code: dto.booking_code },
-    });
-    if (existingBooking) {
-      return {
-        status: "failed",
-        code: ERROR_CODE.BOOKING_EXISTING.code,
-        message: ERROR_CODE.BOOKING_EXISTING.msg,
-      };
-    }
+    let uniqueCode;
+    let existingBooking;
+    do {
+      uniqueCode = generateRandomCode("BO");
+      existingBooking = await ServiceBooking.findOne({
+        where: { booking_code: uniqueCode },
+      });
+    } while (existingBooking);
+    dto.booking_code = uniqueCode;
+
     const newBooking = await ServiceBooking.create({ ...dto });
     return {
       status: "success",
+      code: 201,
       message: "Create booking successfully.",
-      data: newBooking,
+      booking: newBooking,
     };
   } catch (error) {
     console.error("Error creating booking:", error);
@@ -65,7 +66,8 @@ const updateBooking = async (id, dto) => {
     if (!booking) {
       return {
         status: "failed",
-        message: "Booking not found",
+        code: ERROR_CODE.BOOKING_NOT_FOUND.code,
+        message: ERROR_CODE.BOOKING_NOT_FOUND.msg,
       };
     }
 
@@ -74,8 +76,9 @@ const updateBooking = async (id, dto) => {
 
     return {
       status: "success",
+      code: 200,
       message: "Booking updated successfully.",
-      data: booking,
+      booking,
     };
   } catch (error) {
     console.error("Error updating booking:", error);
@@ -94,7 +97,8 @@ const deleteBooking = async (id) => {
     if (!booking) {
       return {
         status: "failed",
-        message: "Booking not found",
+        code: ERROR_CODE.BOOKING_NOT_FOUND.code,
+        message: ERROR_CODE.BOOKING_NOT_FOUND.msg,
       };
     }
 
@@ -102,8 +106,7 @@ const deleteBooking = async (id) => {
     await booking.destroy();
 
     return {
-      status: "success",
-      message: "Booking deleted successfully.",
+      code: 204,
     };
   } catch (error) {
     console.error("Error deleting booking:", error);

@@ -3,10 +3,38 @@ const Staff = require("../models/staffs.model");
 const Services = require("../models/services.model");
 const Customers = require("../models/customers.model");
 
+const get = async (req, res, next) => {
+  try {
+    const {
+      page = 1,
+      limit = 10,
+      sortBy = "createdAt",
+      order = "ASC",
+    } = req.query;
+    const result = await bookingService.getAllBookings({
+      page: parseInt(page),
+      limit: parseInt(limit),
+      sortBy,
+      order: order.toUpperCase(), // Đảm bảo 'ASC' hoặc 'DESC'
+    });
+
+    return res.status(result.code).json({
+      status: result.status,
+      code: result.code,
+      message: result.message,
+      data: result.bookings,
+      totalPages: result.totalPages,
+      totalBookings: result.totalBookings,
+      page: result.page,
+      limit: result.limit,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 const create = async (req, res, next) => {
   try {
     const {
-      booking_code,
       customer_code,
       service_name,
       staff_code,
@@ -67,35 +95,6 @@ const create = async (req, res, next) => {
     next(error);
   }
 };
-
-const get = async (req, res, next) => {
-  try {
-    const {
-      page = 1,
-      limit = 10,
-      sortBy = "createdAt",
-      order = "ASC",
-    } = req.query;
-    const result = await bookingService.getAllBookings({
-      page: parseInt(page),
-      limit: parseInt(limit),
-      sortBy,
-      order: order.toUpperCase(), // Đảm bảo 'ASC' hoặc 'DESC'
-    });
-
-    return res.status(200).json({
-      status: "success",
-      message: "Bookings fetched successfully",
-      data: result.data,
-      totalPages: result.totalPages,
-      totalBookings: result.totalBookings,
-      page: result.page,
-    });
-  } catch (error) {
-    next(error);
-  }
-};
-
 const update = async (req, res, next) => {
   try {
     const { id } = req.params; // Lấy id từ URL params

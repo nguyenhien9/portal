@@ -77,7 +77,7 @@ const update = async (req, res, next) => {
       status: result.status,
       code: result.code,
       message: result.message,
-      data: result.data,
+      data: result.customer,
     });
   } catch (error) {
     next(error);
