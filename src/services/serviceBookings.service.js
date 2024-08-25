@@ -1,3 +1,4 @@
+const ERROR_CODE = require("../constants/errorCode");
 const ServiceBooking = require("../models/serviceBooking.model");
 
 const getAllBookings = async ({ page, limit, sortBy, order }) => {
@@ -11,15 +12,21 @@ const getAllBookings = async ({ page, limit, sortBy, order }) => {
     const totalPages = Math.ceil(count / limit);
     return {
       status: "success",
+      code: 200,
       message: "Bookings fetched successfully",
-      data: rows,
-      totalPages: totalPages,
+      bookings: rows,
+      totalPages,
       totalBookings: count,
-      page: page,
+      page,
     };
   } catch (error) {
     console.error("Error fetching all bookings:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
 
@@ -31,7 +38,8 @@ const createNewBooking = async (dto) => {
     if (existingBooking) {
       return {
         status: "failed",
-        message: "Booking already exists",
+        code: ERROR_CODE.BOOKING_EXISTING.code,
+        message: ERROR_CODE.BOOKING_EXISTING.msg,
       };
     }
     const newBooking = await ServiceBooking.create({ ...dto });
@@ -42,7 +50,12 @@ const createNewBooking = async (dto) => {
     };
   } catch (error) {
     console.error("Error creating booking:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
 
@@ -66,7 +79,12 @@ const updateBooking = async (id, dto) => {
     };
   } catch (error) {
     console.error("Error updating booking:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
 
@@ -89,7 +107,12 @@ const deleteBooking = async (id) => {
     };
   } catch (error) {
     console.error("Error deleting booking:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
 

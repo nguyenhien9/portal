@@ -1,28 +1,6 @@
+const ERROR_CODE = require("../constants/errorCode");
 const Customers = require("../models/customers.model");
-
-const createCustomer = async (dto) => {
-  try {
-    const existingCustomer = await Customers.findOne({
-      where: { customer_code: dto.customer_code },
-    });
-    if (existingCustomer) {
-      return {
-        status: "failed",
-        message: "Customer already exists",
-      };
-    }
-    const newCustomer = await Customers.create({ ...dto });
-    return {
-      status: "success",
-      message: "Create customer successfully.",
-      data: newCustomer,
-    };
-  } catch (error) {
-    console.error("Error creating customer:", error);
-    throw error;
-  }
-};
-
+const generateRandomCode = require("../utils/helpers");
 const getAllCustomers = async ({ page, limit, sortBy, order }) => {
   try {
     const offset = (page - 1) * limit;
@@ -34,18 +12,53 @@ const getAllCustomers = async ({ page, limit, sortBy, order }) => {
     const totalPages = Math.ceil(count / limit);
     return {
       status: "success",
+      code: 200,
       message: "Customers fetched successfully",
-      data: rows,
-      totalPages: totalPages,
+      customers: rows,
+      totalPages,
       totalCustomers: count,
-      page: page,
+      page,
+      limit,
     };
   } catch (error) {
     console.error("Error fetching all customers:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
+const createCustomer = async (dto) => {
+  try {
+    let uniqueCode;
+    let existingCustomer;
+    do {
+      uniqueCode = generateRandomCode("KH");
+      existingCustomer = await Customers.findOne({
+        where: { customer_code: uniqueCode },
+      });
+    } while (existingCustomer);
 
+    dto.customer_code = uniqueCode;
+    const newCustomer = await Customers.create({ ...dto });
+    return {
+      status: "success",
+      code: 201,
+      message: "Create customer successfully.",
+      customer: newCustomer,
+    };
+  } catch (error) {
+    console.error("Error creating customer:", error);
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
+  }
+};
 const updateCustomer = async (id, dto) => {
   try {
     const customer = await Customers.findByPk(id);
@@ -53,7 +66,8 @@ const updateCustomer = async (id, dto) => {
     if (!customer) {
       return {
         status: "failed",
-        message: "Customer not found",
+        code: ERROR_CODE.CUSTOMER_NOT_FOUND.code,
+        message: ERROR_CODE.CUSTOMER_NOT_FOUND.msg,
       };
     }
 
@@ -62,12 +76,18 @@ const updateCustomer = async (id, dto) => {
 
     return {
       status: "success",
+      code: 200,
       message: "Customer updated successfully.",
-      data: customer,
+      customer,
     };
   } catch (error) {
     console.error("Error updating customer:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
 
@@ -77,7 +97,8 @@ const deleteCustomer = async (id) => {
     if (!customer) {
       return {
         status: "failed",
-        message: "Customer not found",
+        code: ERROR_CODE.CUSTOMER_NOT_FOUND.code,
+        message: ERROR_CODE.CUSTOMER_NOT_FOUND.msg,
       };
     }
 
@@ -85,12 +106,16 @@ const deleteCustomer = async (id) => {
     await customer.destroy();
 
     return {
-      status: "success",
-      message: "Customer deleted successfully.",
+      code: 204,
     };
   } catch (error) {
     console.error("Error deleting customer:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
 

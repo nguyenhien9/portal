@@ -18,15 +18,15 @@ const validateBooking = (req, res, next) => {
     !booking_date
   ) {
     return res.status(400).json({
-      success: "failed",
+      status: "failed",
       code: ERROR_CODE.FIELD_REQUIRED.code,
       msg: ERROR_CODE.FIELD_REQUIRED.msg,
     });
   }
-  const bookingCodeRegex = /^B00/;
+  const bookingCodeRegex = /^BO00/;
   if (!bookingCodeRegex.test(booking_code.replace(/\s+/g, ""))) {
     return res.status(400).json({
-      success: "failed",
+      status: "failed",
       code: ERROR_CODE.BOOKING_CODE_INVALID.code,
       msg: ERROR_CODE.BOOKING_CODE_INVALID.msg,
     });

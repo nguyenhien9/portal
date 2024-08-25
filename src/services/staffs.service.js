@@ -1,3 +1,5 @@
+const Position = require("../constants/enum/position.enum");
+const ERROR_CODE = require("../constants/errorCode");
 const Staff = require("../models/staffs.model");
 
 const getAllStaffs = async ({ page, limit, sortBy, order }) => {
@@ -11,15 +13,22 @@ const getAllStaffs = async ({ page, limit, sortBy, order }) => {
     const totalPages = Math.ceil(count / limit);
     return {
       status: "success",
+      code: 200,
       message: "Staffs fetched successfully",
-      data: rows,
-      totalPages: totalPages,
+      staffs: rows,
+      totalPages,
       totalStaffs: count,
-      page: page,
+      page,
+      limit,
     };
   } catch (error) {
     console.error("Error fetching all staffs:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
 
@@ -31,19 +40,32 @@ const createStaff = async (dto) => {
     if (existingStaff) {
       return {
         status: "failed",
-        message: "Staff already exists",
+        code: ERROR_CODE.STAFF_EXISTING.code,
+        message: ERROR_CODE.STAFF_EXISTING.msg,
       };
     }
-
+    if (!Object.values(Position).includes(dto.position)) {
+      return {
+        status: "failed",
+        code: ERROR_CODE.STAFF_POSITION_INVALID.code,
+        message: ERROR_CODE.STAFF_POSITION_INVALID.msg,
+      };
+    }
     const newStaff = await Staff.create({ ...dto });
     return {
       status: "success",
+      code: 201,
       message: "Create staff successfully.",
-      data: newStaff,
+      staff: newStaff,
     };
   } catch (error) {
     console.error("Error creating staff:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
 
@@ -53,7 +75,8 @@ const updateStaff = async (id, dto) => {
     if (!staff) {
       return {
         status: "failed",
-        message: "Staff not found",
+        code: ERROR_CODE.STAFF_NOT_FOUND.code,
+        message: ERROR_CODE.STAFF_NOT_FOUND.msg,
       };
     }
 
@@ -62,12 +85,18 @@ const updateStaff = async (id, dto) => {
 
     return {
       status: "success",
+      code: 200,
       message: "Staff updated successfully.",
-      data: staff,
+      staff,
     };
   } catch (error) {
     console.error("Error updating staff:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
 
@@ -77,7 +106,8 @@ const deleteStaff = async (id) => {
     if (!staff) {
       return {
         status: "failed",
-        message: "Staff not found",
+        code: ERROR_CODE.STAFF_NOT_FOUND.code,
+        message: ERROR_CODE.STAFF_NOT_FOUND.msg,
       };
     }
 
@@ -85,12 +115,16 @@ const deleteStaff = async (id) => {
     await staff.destroy();
 
     return {
-      status: "success",
-      message: "Staff deleted successfully.",
+      code: 204,
     };
   } catch (error) {
     console.error("Error deleting staff:", error);
-    throw error;
+    return {
+      status: "failed",
+      code: ERROR_CODE.INTERNAL_SERVER_ERROR.code,
+      message: ERROR_CODE.INTERNAL_SERVER_ERROR.msg,
+      error: error.message,
+    };
   }
 };
 

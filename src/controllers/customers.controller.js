@@ -1,4 +1,5 @@
 const customerService = require("../services/customers.service");
+const generateRandomCode = require("../utils/helpers");
 
 const get = async (req, res, next) => {
   try {
@@ -14,13 +15,15 @@ const get = async (req, res, next) => {
       sortBy,
       order: order.toUpperCase(), // Đảm bảo 'ASC' hoặc 'DESC'
     });
-    return res.status(200).json({
-      status: "success",
-      message: "Customers fetched successfully",
-      data: result.data,
+    return res.status(result.code).json({
+      status: result.status,
+      code: result.code,
+      message: result.message,
+      data: result.customers,
       totalPages: result.totalPages,
       totalCustomers: result.totalCustomers,
       page: result.page,
+      limit: result.limit,
     });
   } catch (error) {
     next(error);
@@ -29,23 +32,24 @@ const get = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    const { customer_code, full_name, phone_number, address } = req.body;
+    const { full_name, phone_number, address } = req.body;
     const result = await customerService.createCustomer({
-      customer_code,
       full_name,
       phone_number,
       address,
     });
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
-    res.status(201).json({
-      status: "success",
+    res.status(result.code).json({
+      status: result.status,
+      code: result.code,
       message: result.message,
-      data: result.data,
+      data: result.customer,
     });
   } catch (error) {
     next(error);
@@ -63,13 +67,15 @@ const update = async (req, res, next) => {
       address,
     });
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
-    res.status(200).json({
-      status: "success",
+    res.status(result.code).json({
+      status: result.status,
+      code: result.code,
       message: result.message,
       data: result.data,
     });
@@ -83,15 +89,13 @@ const remove = async (req, res, next) => {
     const { id } = req.params;
     const result = await customerService.deleteCustomer(id);
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
-    res.status(200).json({
-      status: "success",
-      message: result.message,
-    });
+    res.status(result.code).json({});
   } catch (error) {
     next(error);
   }

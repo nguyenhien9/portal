@@ -27,7 +27,15 @@ const connectToDB = async () => {
     await sequelize.sync({ force: true });
     console.log("All models were synchronized successfully.");
   } catch (error) {
-    console.error("Unable to connect to the database:", error.message);
+    console.error({
+      status: "failed",
+      code:
+        error instanceof Sequelize.ConnectionError
+          ? ERROR_CODE.DB_CONNECTION_FAILED.code
+          : ERROR_CODE.DB_SYNC_FAILED.code,
+      message: error.message || ERROR_CODE.DB_CONNECTION_FAILED.msg,
+    });
+    throw error;
   }
 };
 

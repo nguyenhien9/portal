@@ -1,10 +1,6 @@
-let num = 1;
-const generateCode = (type) => {
-  const formattedNum = String(num).padStart(2, "0");
-  const code = `${type}${formattedNum}`;
+const crypto = require("crypto");
 
-  num += 1; // Tăng giá trị của num cho lần gọi tiếp theo
-
-  return code; // Trả về mã đã tạo
+const generateRandomCode = (prefix) => {
+  return `${prefix}${crypto.randomUUID().substring(0, 6).toUpperCase()}`;
 };
-module.exports = { generateCode };
+module.exports = generateRandomCode;

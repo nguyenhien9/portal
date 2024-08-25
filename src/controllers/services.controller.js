@@ -4,7 +4,7 @@ const get = async (req, res, next) => {
   try {
     const {
       page = 1,
-      limit = 5,
+      limit = 10,
       sortBy = "createdAt",
       order = "ASC",
     } = req.query;
@@ -14,10 +14,11 @@ const get = async (req, res, next) => {
       sortBy,
       order: order.toUpperCase(), // Đảm bảo 'ASC' hoặc 'DESC'
     });
-    return res.status(200).json({
-      status: "success",
-      message: "Services fetched successfully",
-      results: result.services,
+    return res.status(result.code).json({
+      status: result.status,
+      code: result.code,
+      message: result.message,
+      data: result.services,
       totalPages: result.totalPages,
       totalServices: result.totalServices,
       limit: result.limit,
@@ -36,14 +37,15 @@ const create = async (req, res, next) => {
       service_name,
     });
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
         code: result.code,
         message: result.message,
       });
     }
-    return res.status(201).json({
-      status: "success",
+    return res.status(result.code).json({
+      status: result.message,
+      code: result.code,
       message: result.message,
       data: result.data,
     });
@@ -63,16 +65,18 @@ const update = async (req, res, next) => {
     });
 
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
 
-    return res.status(200).json({
-      status: "success",
+    return res.status(result.code).json({
+      status: result.status,
+      code: result.code,
       message: result.message,
-      data: result.data,
+      data: result.service,
     });
   } catch (error) {
     next(error);
@@ -86,16 +90,14 @@ const remove = async (req, res, next) => {
     const result = await serviceService.deleteService(id);
 
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
 
-    return res.status(200).json({
-      status: "success",
-      message: result.message,
-    });
+    return res.status(result.code).json();
   } catch (error) {
     next(error);
   }

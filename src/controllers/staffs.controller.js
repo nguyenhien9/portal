@@ -14,13 +14,15 @@ const get = async (req, res, next) => {
       sortBy,
       order: order.toUpperCase(), // Đảm bảo 'ASC' hoặc 'DESC'
     });
-    return res.status(200).json({
-      status: "success",
-      message: "Staffs fetched successfully",
-      data: result.data,
+    return res.status(result.code).json({
+      status: result.status,
+      code: result.code,
+      message: result.message,
+      data: result.staffs,
       totalPages: result.totalPages,
-      totalStaffs: result.totalStaffs,
+      totalStaffs: result.count,
       page: result.page,
+      limit: result.limit,
     });
   } catch (error) {
     next(error);
@@ -29,22 +31,25 @@ const get = async (req, res, next) => {
 
 const create = async (req, res, next) => {
   try {
-    const { staff_code, full_name, phone_number } = req.body;
+    const { staff_code, full_name, phone_number, position } = req.body;
     const result = await staffService.createStaff({
       staff_code,
       full_name,
       phone_number,
+      position,
     });
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
-    res.status(201).json({
-      status: "success",
+    res.status(result.code).json({
+      status: result.status,
+      code: result.code,
       message: result.message,
-      data: result.data,
+      data: result.staff,
     });
   } catch (error) {
     next(error);
@@ -54,25 +59,28 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const { id } = req.params; // Lấy id từ URL params
-    const { staff_code, full_name, phone_number } = req.body;
+    const { staff_code, full_name, phone_number, position } = req.body;
 
     const result = await staffService.updateStaff(id, {
       staff_code,
       full_name,
       phone_number,
+      position,
     });
 
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
 
-    return res.status(200).json({
+    return res.status(result.code).json({
       status: "success",
+      code: result.code,
       message: result.message,
-      data: result.data,
+      data: result.staff,
     });
   } catch (error) {
     next(error);
@@ -86,16 +94,14 @@ const remove = async (req, res, next) => {
     const result = await staffService.deleteStaff(id);
 
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
 
-    return res.status(200).json({
-      status: "success",
-      message: result.message,
-    });
+    return res.status(result.code).json();
   } catch (error) {
     next(error);
   }
