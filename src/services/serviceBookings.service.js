@@ -1,10 +1,43 @@
+const { Op } = require("sequelize");
 const ERROR_CODE = require("../constants/errorCode");
 const ServiceBooking = require("../models/serviceBooking.model");
 const generateRandomCode = require("../utils/helpers");
-const getAllBookings = async ({ page, limit, sortBy, order }) => {
+const getAllBookings = async ({ page, limit, sortBy, order, filters }) => {
   try {
     const offset = (page - 1) * limit;
+    const where = {};
+    if (filters) {
+      if (filters.customer_code) {
+        where.customer_code = filters.customer_code;
+      }
+      if (filters.service_name) {
+        where.service_name = filters.service_name;
+      }
+      if (filters.staff_code) {
+        where.staff_code = filters.staff_code;
+      }
+      if (filters.status) {
+        where.status = filters.status;
+      }
+      if (filters.booking_date) {
+        if (filters.booking_date[Op.between]) {
+          where.booking_date = {
+            [Op.between]: filters.booking_date[Op.between],
+          };
+        } else if (filters.booking_date[Op.gte]) {
+          where.booking_date = {
+            [Op.gte]: filters.booking_date[Op.gte],
+          };
+        } else if (filters.booking_date[Op.lte]) {
+          where.booking_date = {
+            [Op.lte]: filters.booking_date[Op.lte],
+          };
+        }
+      }
+    }
+
     const { rows, count } = await ServiceBooking.findAndCountAll({
+      where,
       offset,
       limit,
       order: [[sortBy, order]],
@@ -18,6 +51,7 @@ const getAllBookings = async ({ page, limit, sortBy, order }) => {
       totalPages,
       totalBookings: count,
       page,
+      limit,
     };
   } catch (error) {
     console.error("Error fetching all bookings:", error);

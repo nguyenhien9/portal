@@ -1,10 +1,46 @@
+const { Op } = require("sequelize");
 const ERROR_CODE = require("../constants/errorCode");
 const Customers = require("../models/customers.model");
 const generateRandomCode = require("../utils/helpers");
-const getAllCustomers = async ({ page, limit, sortBy, order }) => {
+const getAllCustomers = async ({ page, limit, sortBy, order, filters }) => {
   try {
+    // Tạo đối tượng `where` để sử dụng trong điều kiện lọc
+    const where = {};
+    if (filters) {
+      if (filters.customer_code) {
+        where.customer_code = filters.customer_code;
+      }
+      if (filters.name) {
+        where.name = { [Op.like]: `%${filters.name}%` }; // Tìm kiếm theo tên với ký tự đại diện
+      }
+      if (filters.email) {
+        where.email = { [Op.like]: `%${filters.email}%` }; // Tìm kiếm theo email với ký tự đại diện
+      }
+      if (filters.phone) {
+        where.phone = { [Op.like]: `%${filters.phone}%` }; // Tìm kiếm theo số điện thoại với ký tự đại diện
+      }
+      if (filters.address) {
+        where.address = { [Op.like]: `%${filters.address}%` }; // Tìm kiếm theo địa chỉ với ký tự đại diện
+      }
+      if (filters.created_at) {
+        if (filters.created_at[Op.between]) {
+          where.created_at = {
+            [Op.between]: filters.created_at[Op.between],
+          };
+        } else if (filters.created_at[Op.gte]) {
+          where.created_at = {
+            [Op.gte]: filters.created_at[Op.gte],
+          };
+        } else if (filters.created_at[Op.lte]) {
+          where.created_at = {
+            [Op.lte]: filters.created_at[Op.lte],
+          };
+        }
+      }
+    }
     const offset = (page - 1) * limit;
     const { rows, count } = await Customers.findAndCountAll({
+      where,
       offset,
       limit,
       order: [[sortBy, order]],

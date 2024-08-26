@@ -2,6 +2,7 @@ const bookingService = require("../services/serviceBookings.service");
 const Staff = require("../models/staffs.model");
 const Services = require("../models/services.model");
 const Customers = require("../models/customers.model");
+const ERROR_CODE = require("../constants/errorCode");
 
 const get = async (req, res, next) => {
   try {
@@ -10,12 +11,37 @@ const get = async (req, res, next) => {
       limit = 10,
       sortBy = "createdAt",
       order = "ASC",
+      customer_code,
+      service_name,
+      staff_code,
+      status,
+      fromDate,
+      toDate,
     } = req.query;
+    // Kiểm tra giá trị sortBy và order hợp lệ
+    const validSortBy = ["createdAt", "updatedAt"];
+    const validOrder = ["ASC", "DESC"];
+
+    if (!validSortBy.includes(sortBy)) sortBy = "createdAt";
+    if (!validOrder.includes(order.toUpperCase())) order = "ASC";
+
+    // Tạo đối tượng filter từ các tham số lọc
+    const filters = {};
+    if (customer_code) filters.customer_code = customer_code;
+    if (service_name) filters.service_name = service_name;
+    if (staff_code) filters.staff_code = staff_code;
+    if (status) filters.status = status;
+    if (fromDate || toDate) {
+      filters.booking_date = {};
+      if (fromDate) filters.booking_date[Op.gte] = new Date(fromDate);
+      if (toDate) filters.booking_date[Op.lte] = new Date(toDate);
+    }
     const result = await bookingService.getAllBookings({
       page: parseInt(page),
       limit: parseInt(limit),
       sortBy,
       order: order.toUpperCase(), // Đảm bảo 'ASC' hoặc 'DESC'
+      filters,
     });
 
     return res.status(result.code).json({
@@ -48,7 +74,8 @@ const create = async (req, res, next) => {
     if (!customer) {
       return res.status(400).json({
         status: "failed",
-        message: "Customer not found with the provided customer_code",
+        code: ERROR_CODE.CUSTOMER_NOT_FOUND.code,
+        message: ERROR_CODE.CUSTOMER_NOT_FOUND.msg,
       });
     }
 
@@ -56,7 +83,8 @@ const create = async (req, res, next) => {
     if (!staff) {
       return res.status(400).json({
         status: "failed",
-        message: "Staff not found with the provided staff_code",
+        code: ERROR_CODE.STAFF_NOT_FOUND.code,
+        message: ERROR_CODE.STAFF_NOT_FOUND.msg,
       });
     }
 
@@ -64,13 +92,13 @@ const create = async (req, res, next) => {
     if (!service) {
       return res.status(400).json({
         status: "failed",
-        message: "Service not found with the provided service_name",
+        code: ERROR_CODE.SERVICE_NOT_FOUND.code,
+        message: ERROR_CODE.SERVICE_NOT_FOUND.msg,
       });
     }
 
     // Tạo mới booking
     const result = await bookingService.createNewBooking({
-      booking_code,
       customer_id: customer.id,
       service_id: service.id,
       staff_id: staff.id,
@@ -80,16 +108,18 @@ const create = async (req, res, next) => {
     });
 
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
 
-    return res.status(201).json({
-      status: "success",
+    return res.status(result.code).json({
+      status: result.status,
+      code: result.code,
       message: result.message,
-      data: result.data,
+      data: result.booking,
     });
   } catch (error) {
     next(error);
@@ -99,7 +129,6 @@ const update = async (req, res, next) => {
   try {
     const { id } = req.params; // Lấy id từ URL params
     const {
-      booking_code,
       customer_code,
       service_name,
       staff_code,
@@ -113,7 +142,8 @@ const update = async (req, res, next) => {
     if (!customer) {
       return res.status(400).json({
         status: "failed",
-        message: "Customer not found with the provided customer_code",
+        code: ERROR_CODE.CUSTOMER_NOT_FOUND.code,
+        message: ERROR_CODE.CUSTOMER_NOT_FOUND.msg,
       });
     }
 
@@ -121,7 +151,8 @@ const update = async (req, res, next) => {
     if (!staff) {
       return res.status(400).json({
         status: "failed",
-        message: "Staff not found with the provided staff_code",
+        code: ERROR_CODE.STAFF_NOT_FOUND.code,
+        message: ERROR_CODE.STAFF_NOT_FOUND.msg,
       });
     }
 
@@ -129,13 +160,12 @@ const update = async (req, res, next) => {
     if (!service) {
       return res.status(400).json({
         status: "failed",
-        message: "Service not found with the provided service_name",
+        code: ERROR_CODE.SERVICE_NOT_FOUND.code,
+        message: ERROR_CODE.SERVICE_NOT_FOUND.msg,
       });
     }
-
     // Cập nhật booking
     const result = await bookingService.updateBooking(id, {
-      booking_code,
       customer_id: customer.id,
       service_id: service.id,
       staff_id: staff.id,
@@ -145,14 +175,16 @@ const update = async (req, res, next) => {
     });
 
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
 
-    return res.status(200).json({
-      status: "success",
+    return res.status(result.code).json({
+      status: result.status,
+      code: result.code,
       message: result.message,
       data: result.data,
     });
@@ -169,16 +201,14 @@ const remove = async (req, res, next) => {
     const result = await bookingService.deleteBooking(id);
 
     if (result.status === "failed") {
-      return res.status(400).json({
+      return res.status(result.code).json({
         status: result.status,
+        code: result.code,
         message: result.message,
       });
     }
 
-    return res.status(200).json({
-      status: "success",
-      message: result.message,
-    });
+    return res.status(result.code).json({});
   } catch (error) {
     next(error);
   }

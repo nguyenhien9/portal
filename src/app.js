@@ -13,10 +13,10 @@ const PORT = process.env.PORT || 8080;
 const app = express();
 app.use(
   cors({
-    // origin: "http://localhost:5173",
-    // methods: ["GET", "POST", "PUT", "DELETE"],
-    // credentials: true, //access-control-allow-credentials:true
-    // optionSuccessStatus: 200,
+    origin: "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true, //access-control-allow-credentials:true
+    optionSuccessStatus: 200,
   })
 );
 app.use(express.json());
