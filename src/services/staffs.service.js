@@ -17,6 +17,7 @@ const getAllStaffs = async ({ page, limit, sortBy, order }) => {
         staff_code: staff.staff_code,
         full_name: staff.full_name,
         position: staff.position,
+        phone_number: staff.phone_number,
         created_at: moment(staff.createdAt).format("yyyy-MM-D"),
         updated_at: moment(staff.updated_at).format("yyyy-MM-D"),
       };

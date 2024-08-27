@@ -108,11 +108,41 @@ const createNewBooking = async (dto) => {
     dto.booking_code = uniqueCode;
 
     const newBooking = await ServiceBooking.create({ ...dto });
+    const bookingWithRelations = await ServiceBooking.findByPk(newBooking.id, {
+      include: [
+        { model: Customers, attributes: ["full_name", "customer_code"] },
+        { model: Staffs, attributes: ["full_name", "staff_code"] },
+        { model: Services, attributes: ["service_name"] },
+      ],
+    });
+    // Định dạng lại các trường trước khi trả về
+    const formattedBooking = {
+      id: bookingWithRelations.id,
+      booking_code: bookingWithRelations.booking_code,
+      booking_date: moment(bookingWithRelations.booking_date).format(
+        "YYYY-MM-DD"
+      ),
+      status: bookingWithRelations.status,
+      notes: bookingWithRelations.notes,
+      createdAt: moment(bookingWithRelations.createdAt).format("YYYY-MM-DD"),
+      updatedAt: moment(bookingWithRelations.updatedAt).format("YYYY-MM-DD"),
+      Customer: {
+        full_name: bookingWithRelations.Customer.full_name,
+        customer_code: bookingWithRelations.Customer.customer_code,
+      },
+      Staff: {
+        full_name: bookingWithRelations.Staff.full_name,
+        staff_code: bookingWithRelations.Staff.staff_code,
+      },
+      Service: {
+        service_name: bookingWithRelations.Service.service_name,
+      },
+    };
     return {
       status: "success",
       code: 201,
       message: "Create booking successfully.",
-      booking: newBooking,
+      booking: formattedBooking,
     };
   } catch (error) {
     console.error("Error creating booking:", error);
@@ -139,11 +169,42 @@ const updateBooking = async (id, dto) => {
     // Cập nhật thông tin booking
     await booking.update({ ...dto });
 
+    // Truy vấn lại để lấy thông tin liên kết sau khi cập nhật
+    const updatedBooking = await ServiceBooking.findByPk(id, {
+      include: [
+        { model: Customers, attributes: ["full_name", "customer_code"] },
+        { model: Staffs, attributes: ["full_name", "staff_code"] },
+        { model: Services, attributes: ["service_name"] },
+      ],
+    });
+
+    // Định dạng lại các trường trước khi trả về
+    const formattedBooking = {
+      id: updatedBooking.id,
+      booking_code: updatedBooking.booking_code,
+      booking_date: moment(updatedBooking.booking_date).format("YYYY-MM-DD"),
+      status: updatedBooking.status,
+      notes: updatedBooking.notes,
+      createdAt: moment(updatedBooking.createdAt).format("YYYY-MM-DD"),
+      updatedAt: moment(updatedBooking.updatedAt).format("YYYY-MM-DD"),
+      Customer: {
+        full_name: updatedBooking.Customer.full_name,
+        customer_code: updatedBooking.Customer.customer_code,
+      },
+      Staff: {
+        full_name: updatedBooking.Staff.full_name,
+        staff_code: updatedBooking.Staff.staff_code,
+      },
+      Service: {
+        service_name: updatedBooking.Service.service_name,
+      },
+    };
+
     return {
       status: "success",
       code: 200,
       message: "Booking updated successfully.",
-      booking,
+      booking: formattedBooking,
     };
   } catch (error) {
     console.error("Error updating booking:", error);

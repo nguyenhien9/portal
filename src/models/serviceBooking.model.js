@@ -44,7 +44,7 @@ const ServiceBooking = sequelize.define("ServiceBooking", {
   status: {
     type: DataTypes.INTEGER,
     allowNull: false,
-    defaultValue: 0, // 0: Đang chờ, 1: Hoàn thành, 2: Hủy bỏ
+    defaultValue: 0, // 0: Đang chờ, 1: Đang thực hiện, 2: Hoàn thành, 3: Hủy bỏ
   },
   notes: {
     type: DataTypes.STRING(50),
