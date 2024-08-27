@@ -38,7 +38,7 @@ const ServiceBooking = sequelize.define("ServiceBooking", {
   },
   booking_date: {
     type: DataTypes.DATE,
-    allowNull: false,
+    allowNull: true,
     defaultValue: DataTypes.NOW,
   },
   status: {

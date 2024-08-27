@@ -1,7 +1,7 @@
 const Position = require("../constants/enum/position.enum");
 const ERROR_CODE = require("../constants/errorCode");
 const Staff = require("../models/staffs.model");
-
+const moment = require("moment");
 const getAllStaffs = async ({ page, limit, sortBy, order }) => {
   try {
     const offset = (page - 1) * limit;
@@ -10,12 +10,23 @@ const getAllStaffs = async ({ page, limit, sortBy, order }) => {
       limit,
       order: [[sortBy, order]],
     });
+
+    const formattedStaffs = rows.map((staff) => {
+      return {
+        id: staff.id,
+        staff_code: staff.staff_code,
+        full_name: staff.full_name,
+        position: staff.position,
+        created_at: moment(staff.createdAt).format("yyyy-MM-D"),
+        updated_at: moment(staff.updated_at).format("yyyy-MM-D"),
+      };
+    });
     const totalPages = Math.ceil(count / limit);
     return {
       status: "success",
       code: 200,
       message: "Staffs fetched successfully",
-      staffs: rows,
+      staffs: formattedStaffs,
       totalPages,
       totalStaffs: count,
       page,

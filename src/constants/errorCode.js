@@ -28,6 +28,10 @@ const ERROR_CODE = {
     code: 106,
     msg: "Booking code must start with BO00.",
   },
+  SERVICE_CODE_INVALID: {
+    code: 107,
+    msg: "Service code must start with DV00.",
+  },
 
   // 2xx: Lỗi kết nối hoặc tương tác với cơ sở dữ liệu
   DB_CONNECTION_FAILED: {

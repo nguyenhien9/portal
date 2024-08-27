@@ -2,6 +2,10 @@ const { Op } = require("sequelize");
 const ERROR_CODE = require("../constants/errorCode");
 const ServiceBooking = require("../models/serviceBooking.model");
 const generateRandomCode = require("../utils/helpers");
+const Customers = require("../models/customers.model");
+const Staffs = require("../models/staffs.model");
+const Services = require("../models/services.model");
+const moment = require("moment");
 const getAllBookings = async ({ page, limit, sortBy, order, filters }) => {
   try {
     const offset = (page - 1) * limit;
@@ -41,13 +45,40 @@ const getAllBookings = async ({ page, limit, sortBy, order, filters }) => {
       offset,
       limit,
       order: [[sortBy, order]],
+      include: [
+        { model: Customers, attributes: ["full_name", "customer_code"] },
+        { model: Staffs, attributes: ["full_name", "staff_code"] },
+        { model: Services, attributes: ["service_name"] },
+      ],
+    });
+    const formattedBookings = rows.map((booking) => {
+      return {
+        id: booking.id,
+        booking_code: booking.booking_code,
+        booking_date: moment(booking.booking_date).format("yyyy-MM-D"),
+        status: booking.status,
+        notes: booking.notes,
+        createdAt: moment(booking.createdAt).format("yyyy-MM-D"),
+        updatedAt: moment(booking.updatedAt).format("yyyy-MM-D"),
+        Customer: {
+          full_name: booking.Customer.full_name,
+          customer_code: booking.Customer.customer_code,
+        },
+        Staff: {
+          full_name: booking.Staff.full_name,
+          staff_code: booking.Staff.staff_code,
+        },
+        Service: {
+          service_name: booking.Service.service_name,
+        },
+      };
     });
     const totalPages = Math.ceil(count / limit);
     return {
       status: "success",
       code: 200,
       message: "Bookings fetched successfully",
-      bookings: rows,
+      bookings: formattedBookings,
       totalPages,
       totalBookings: count,
       page,

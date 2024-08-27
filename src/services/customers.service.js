@@ -2,6 +2,7 @@ const { Op } = require("sequelize");
 const ERROR_CODE = require("../constants/errorCode");
 const Customers = require("../models/customers.model");
 const generateRandomCode = require("../utils/helpers");
+const moment = require("moment");
 const getAllCustomers = async ({ page, limit, sortBy, order, filters }) => {
   try {
     // Tạo đối tượng `where` để sử dụng trong điều kiện lọc
@@ -45,12 +46,23 @@ const getAllCustomers = async ({ page, limit, sortBy, order, filters }) => {
       limit,
       order: [[sortBy, order]],
     });
+    const formattedCustomers = rows.map((customer) => {
+      return {
+        id: customer.id,
+        customer_code: customer.customer_code,
+        full_name: customer.full_name,
+        phone_number: customer.phone_number,
+        address: customer.address,
+        created_at: moment(customer.createdAt).format("yyyy-MM-D"),
+        updated_at: moment(customer.updated_at).format("yyyy-MM-D"),
+      };
+    });
     const totalPages = Math.ceil(count / limit);
     return {
       status: "success",
       code: 200,
       message: "Customers fetched successfully",
-      customers: rows,
+      customers: formattedCustomers,
       totalPages,
       totalCustomers: count,
       page,

@@ -1,7 +1,7 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/sequelize.config");
 const Position = require("../constants/enum/position.enum");
-const Staff = sequelize.define("Staff", {
+const Staffs = sequelize.define("Staffs", {
   id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
@@ -26,4 +26,4 @@ const Staff = sequelize.define("Staff", {
   },
 });
 
-module.exports = Staff;
+module.exports = Staffs;

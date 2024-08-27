@@ -1,6 +1,6 @@
 const Services = require("../models/services.model");
 const ERROR_CODE = require("../constants/errorCode");
-
+const moment = require("moment");
 const getAllServices = async ({ page, limit, sortBy, order }) => {
   try {
     const offset = (page - 1) * limit;
@@ -9,12 +9,21 @@ const getAllServices = async ({ page, limit, sortBy, order }) => {
       limit,
       order: [[sortBy, order]],
     });
+    const formattedServices = rows.map((service) => {
+      return {
+        id: service.id,
+        service_code: service.service_code,
+        service_name: service.service_name,
+        created_at: moment(service.createdAt).format("yyyy-MM-D"),
+        updated_at: moment(service.updated_at).format("yyyy-MM-D"),
+      };
+    });
     const totalPages = Math.ceil(count / limit);
     return {
       status: "success",
       code: 200,
       message: "Services fetched successfully",
-      services: rows,
+      services: formattedServices,
       totalPages,
       totalServices: count,
       limit,
